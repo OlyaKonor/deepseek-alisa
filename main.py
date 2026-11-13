@@ -4,8 +4,8 @@ import requests
 
 app = FastAPI()
 
-OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 @app.post("/")
 async def main(request: Request):
@@ -14,19 +14,16 @@ async def main(request: Request):
 
     try:
         response = requests.post(
-            OPENROUTER_API_URL,
+            GROQ_API_URL,
             headers={
-                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                "HTTP-Referer": "https://alice.yandex.ru",
-                "X-Title": "Alisa Skill",
+                "Authorization": f"Bearer {GROQ_API_KEY}",
                 "Content-Type": "application/json"
             },
             json={
-                # Самая быстрая и стабильная бесплатная модель на данный момент
-                "model": "google/gemini-2.0-flash-exp:free",
+                "model": "llama-3.1-8b-instant",
                 "messages": [{"role": "user", "content": user_text}]
             },
-            timeout=4.0 # Ждем ответа не дольше 4 секунд
+            timeout=4.0
         )
 
         if response.status_code != 200:
@@ -35,21 +32,20 @@ async def main(request: Request):
                 "session": body["session"],
                 "response": {
                     "end_session": False,
-                    "text": f"Ошибка OpenRouter: {response.status_code}"
+                    "text": f"Ошибка Groq: {response.status_code}"
                 }
             }
         
-        response_data = response.json()
-        
-        if "choices" in response_data and len(response_data["choices"]) > 0:
-            answer = response_data["choices"][0]["message"]["content"]
+        data = response.json()
+        if "choices" in data and len(data["choices"]) > 0:
+            answer = data["choices"][0]["message"]["content"]
         else:
             answer = "Нейросеть вернула пустой ответ."
 
     except requests.exceptions.Timeout:
-        answer = "Нейросеть задумалась слишком надолго. Попробуйте спросить что-то попроще."
+        answer = "Нейросеть думает слишком долго. Попробуйте спросить короче."
     except Exception:
-        answer = "Произошла ошибка при подключении."
+        answer = "Ошибка подключения к нейросети."
 
     return {
         "version": body["version"],
