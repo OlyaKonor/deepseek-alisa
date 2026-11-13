@@ -20,7 +20,8 @@ async def main(request: Request):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "llama-3.1-8b-instant",
+                # Официальная замена удаленной модели от Groq
+                "model": "openai/gpt-oss-20b",
                 "messages": [{"role": "user", "content": user_text}]
             },
             timeout=4.0
