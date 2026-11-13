@@ -61,7 +61,7 @@ async def main(request: Request):
     text_lower = user_text.lower()
 
     # Умная загрузка данных (только по запросу)
-    if any(word in text_lower for word in ["погод", "температур", "холодно", "тепло"]):
+    if any(word in text_lower for word in ["погод", "температур", "холодно", "тепло", "одеть", "куртк"]):
         data_context += f" {get_weather()}"
     if any(word in text_lower for word in ["курс", "доллар", "евро", "валют", "юань"]):
         data_context += f" {get_currency()}"
@@ -70,12 +70,13 @@ async def main(request: Request):
     if any(word in text_lower for word in ["новост", "что случилось", "что происходит"]):
         data_context += f" {get_news()}"
 
-    # ПРОМПТ: Просим суть, без воды, с юмором
+    # ИСПРАВЛЕННЫЙ ПРОМПТ
     system_prompt = (
-        f"Ты — голосовой ассистент с черным юмором и сарказмом. Ты не боишься шутить. "
-        f"ГЛАВНОЕ ПРАВИЛО: Отвечай емко, по делу, без воды и вступлений. Сразу переходи к сути! "
-        f"Если нужен список — используй короткие пункты. Не пиши 'Конечно', 'Вот ваш ответ' и т.д. "
-        f"Факты для ответа (если есть): {data_context}."
+        f"Ты — голосовой ассистент с сарказмом и черным юмором. Ты умный, язвительный, но ПОЛЕЗНЫЙ. "
+        f"ВАЖНО: Пользователь живет в Санкт-Петербурге, Россия. "
+        f"Ты ОБЯЗАН давать четкие рекомендации и советы, когда тебя просят (например, что надеть по погоде, стоит ли брать зонт, как поступить в ситуации). Не отказывай в помощи. "
+        f"ГЛАВНОЕ ПРАВИЛО: Отвечай емко, по делу, без воды. Сразу переходи к сути! Если нужен список — используй короткие пункты. "
+        f"Факты для ответа (используй их, если они есть): {data_context}."
     )
 
     # Инициализация памяти
@@ -86,7 +87,7 @@ async def main(request: Request):
 
     chat_histories[session_id].append({"role": "user", "content": user_text})
 
-    # РАСШИРЕННАЯ ПАМЯТЬ: Оставляем 12 последних сообщений (системный промпт + 11 реплик)
+    # РАСШИРЕННАЯ ПАМЯТЬ: Оставляем 12 последних сообщений
     if len(chat_histories[session_id]) > 12:
         chat_histories[session_id] = [chat_histories[session_id][0]] + chat_histories[session_id][-11:]
 
@@ -97,10 +98,10 @@ async def main(request: Request):
             json={
                 "model": "openai/gpt-oss-20b", 
                 "messages": chat_histories[session_id],
-                "max_tokens": 250, # Увеличили лимит для полноценного, но емкого ответа
-                "temperature": 0.7 # Чуть снизили креативность, чтобы меньше "воды"
+                "max_tokens": 250, 
+                "temperature": 0.7 
             },
-            timeout=3.2 # Оставляем запас в 1.3 сек для сети Алисы
+            timeout=3.2 
         )
 
         if response.status_code == 200:
@@ -121,7 +122,7 @@ async def main(request: Request):
             "end_session": False,
             "text": answer,
             "buttons": [
-                {"title": "Погода", "hide": True},
+                {"title": "Что надеть сегодня?", "hide": True},
                 {"title": "Курс валют", "hide": True},
                 {"title": "Новости", "hide": True}
             ]
