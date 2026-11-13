@@ -13,7 +13,7 @@ async def main(request: Request):
     user_text = body["request"]["original_utterance"]
 
     try:
-        # Используем роутер, который сам выберет доступную бесплатную модель
+        # Используем быструю и стабильную бесплатную модель
         response = requests.post(
             OPENROUTER_API_URL,
             headers={
@@ -22,7 +22,7 @@ async def main(request: Request):
                 "X-Title": "Alisa Skill"
             },
             json={
-                "model": "openrouter/free",
+                "model": "meta-llama/llama-3.2-3b-instruct:free",
                 "messages": [{"role": "user", "content": user_text}]
             },
             timeout=4.0 # Ждем ответ не дольше 4 секунд, чтобы Алиса успела
