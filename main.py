@@ -20,11 +20,13 @@ async def main(request: Request):
                 "Content-Type": "application/json"
             },
             json={
-                # Официальная замена удаленной модели от Groq
                 "model": "openai/gpt-oss-20b",
-                "messages": [{"role": "user", "content": user_text}]
+                "messages": [
+                    {"role": "system", "content": "Ты голосовой ассистент. Отвечай очень кратко, максимум 1-2 предложения."},
+                    {"role": "user", "content": user_text}
+                ]
             },
-            timeout=4.0
+            timeout=3.0 # Строгий лимит: если Groq думает дольше 3 секунд, мы прерываем
         )
 
         if response.status_code != 200:
@@ -44,9 +46,10 @@ async def main(request: Request):
             answer = "Нейросеть вернула пустой ответ."
 
     except requests.exceptions.Timeout:
-        answer = "Нейросеть думает слишком долго. Попробуйте спросить короче."
+        # Если Groq не успел за 3 секунды, Алиса все равно получит быстрый ответ и не оборвет связь
+        answer = "Я задумалась. Повторите вопрос, пожалуйста."
     except Exception:
-        answer = "Ошибка подключения к нейросети."
+        answer = "Ошибка подключения."
 
     return {
         "version": body["version"],
