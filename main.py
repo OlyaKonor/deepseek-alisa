@@ -20,7 +20,7 @@ async def main(request: Request):
             "X-Title": "Alisa Skill"
         },
         json={
-            "model": "deepseek/deepseek-chat-v3.1:free",
+            "model": "openrouter/free",
             "messages": [{"role": "user", "content": user_text}]
         }
     )
